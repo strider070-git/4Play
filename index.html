@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0a0d">
+<meta name="color-scheme" content="dark">
+<title>Threshold</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Threshold">
+<style>
+:root{
+  --bg:#0b0a0d; --panel:#16141a; --panel2:#1f1b25; --line:#332b3d;
+  --ink:#f2ece3; --dim:#9a9088; --gold:#d8b23f; --red:#cf5c45;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%; overscroll-behavior:none}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px;line-height:1.5;max-width:520px;margin:0 auto;
+  padding:calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+  position:relative;min-height:100vh;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;
+}
+h1{font-family:Georgia,serif;font-size:30px;letter-spacing:.2em;text-transform:uppercase;
+  margin:14px 0 4px;font-weight:400;color:var(--gold)}
+h2{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+  font-weight:600;margin:26px 0 10px}
+p{margin:0 0 10px}
+.lede{color:var(--dim);font-family:Georgia,serif;font-style:italic;font-size:15px;margin-bottom:22px}
+
+button{font-family:inherit;font-size:15px;font-weight:500;background:var(--panel2);color:var(--ink);
+  border:1px solid var(--line);padding:0 14px;min-height:46px;border-radius:11px;cursor:pointer;
+  letter-spacing:.02em;transition:border-color .15s,background .15s}
+button:active:not(:disabled){background:#2a2433}
+button:disabled{opacity:.4}
+button.primary{background:var(--gold);color:#171307;border-color:var(--gold);font-weight:700;
+  font-size:17px;min-height:54px;border-radius:13px;letter-spacing:.04em}
+button.primary:active{background:#c8a234}
+button.ghost{background:transparent}
+button.small{min-height:38px;font-size:13px;padding:0 11px;border-radius:9px}
+
+input,select{font-family:inherit;font-size:16px;background:#0f0d13;color:var(--ink);
+  border:1px solid var(--line);padding:10px;border-radius:10px;width:100%;min-height:46px;
+  -webkit-appearance:none;appearance:none;-webkit-user-select:text;user-select:text}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),
+  linear-gradient(135deg,var(--dim) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 20px,calc(100% - 13px) 20px;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
+label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+  display:block;margin-bottom:5px;font-weight:600}
+
+.pcard{border:1px solid var(--line);background:var(--panel);padding:14px;margin-bottom:12px;border-radius:14px}
+.phead{display:flex;gap:8px;margin-bottom:12px}
+.phead input{flex:1}
+.phead select{width:82px;flex:0 0 82px}
+.grid5{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.traits{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
+.tchip{font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);
+  padding:9px 12px;cursor:pointer;color:var(--dim);border-radius:9px;font-weight:600}
+.tchip.on{border-color:var(--gold);color:var(--gold);background:#221c0f}
+.seg{display:flex;gap:8px;margin:0 0 22px}
+.seg button{flex:1;text-transform:capitalize}
+.seg button.on{border-color:var(--gold);color:var(--gold);background:#221c0f}
+.note{font-size:12.5px;color:var(--dim);margin-top:16px;line-height:1.55}
+#begin{width:100%;margin-top:4px}
+
+.bar{display:flex;align-items:flex-start;gap:10px;padding-bottom:10px}
+.barL{flex:1;min-width:0}
+.sname{display:block;font-size:12px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold);font-weight:600}
+.prog{display:block;font-size:11.5px;letter-spacing:.1em;color:var(--dim);margin-top:3px}
+.clock{display:inline-block;margin-top:6px;font-size:24px;font-weight:300;
+  font-variant-numeric:tabular-nums;color:var(--gold);letter-spacing:.04em}
+.clock.low{color:var(--red)}
+.clock.off{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
+  font-weight:600;margin-top:9px}
+.barBtns{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
+.barBtns button{min-width:76px}
+#restart{background:var(--ink);color:#0b0a0d;border-color:var(--ink);font-weight:600}
+#restart:active{background:#d5cec4}
+.rule{font-family:Georgia,serif;font-size:13px;color:var(--dim);font-style:italic;
+  padding:10px 0 12px;border-bottom:1px solid var(--line)}
+.coach{font-size:12.5px;color:var(--gold);padding:9px 0 0}
+.chips{display:flex;gap:7px;overflow-x:auto;padding:12px 0 4px;scrollbar-width:none;
+  overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+  mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%);
+  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%)}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);border-radius:9px;padding:7px 10px;
+  font-size:12px;color:var(--dim);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip b{color:var(--ink);font-weight:600}
+.chip i{color:var(--gold);font-style:normal;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.chip.naked{border-color:#4b3f55;color:#8a7f95}
+.chip.sat{opacity:.42;text-decoration:line-through}
+
+.card{border:1px solid var(--line);background:var(--panel);padding:20px 18px;
+  margin:12px 0 0;border-radius:16px;min-height:140px;display:flex;flex-direction:column;justify-content:center}
+.card .pick{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
+  margin-bottom:12px;font-weight:600}
+.card .txt{font-family:Georgia,serif;font-size:19.5px;line-height:1.55}
+.card .txt b{color:var(--gold);font-weight:400}
+.hidden{font-family:Georgia,serif;font-size:15px;color:var(--dim);font-style:italic}
+
+.ctr{margin:12px 0 10px}
+.ctr button{width:100%}
+.trow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.trow button{flex:1 1 auto;min-width:92px;min-height:42px;font-size:13.5px;border-radius:10px}
+
+.outs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0}
+.out{border:1px solid var(--line);background:transparent;padding:10px 8px;font-size:12px;
+  color:var(--dim);border-radius:11px;text-align:left;min-height:52px}
+.out .n{display:block;color:var(--ink);font-size:13px;font-weight:600;margin-bottom:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.out:disabled{opacity:.4}
+.outhint{font-size:11.5px;color:var(--dim);margin:16px 0 8px;line-height:1.45}
+
+.tox{display:flex;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--dim);margin-bottom:10px}
+.tox span{border:1px solid var(--line);padding:4px 7px;border-radius:7px}
+
+.overlay{position:absolute;inset:0;background:rgba(7,6,9,.94);display:flex;
+  align-items:flex-start;justify-content:center;padding:26px 18px;z-index:9}
+.dialog{border:1px solid var(--gold);background:var(--panel);padding:22px;
+  max-width:360px;width:100%;border-radius:16px}
+.dialog h3{margin:0 0 8px;font-size:17px;font-weight:600;letter-spacing:.02em}
+.dialog p{font-size:13.5px;color:var(--dim);margin-bottom:16px}
+.dialog .ctr{display:flex;gap:8px;margin:0}
+.dialog .ctr button{width:auto;flex:1;min-height:48px}
+
+.end{text-align:center;padding:40px 0}
+.end h2{font-family:Georgia,serif;color:var(--gold);font-size:22px;letter-spacing:.16em;
+  text-transform:none;margin-bottom:10px}
+.end button{width:100%;max-width:280px;margin-top:10px}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+"use strict";
+
+var KEY = "threshold.v7";
+var BV = 37;
+var STAGES = [
+  null,
+  { n:"Door",  rule:"Nothing comes off. Talk only, and say it plainly." },
+  { n:"Seated",rule:"Hands over clothes. The one four-player beat takes an item from everyone." },
+  { n:"Skin",  rule:"Clothing comes off here. Pair beats take one item; the room beats take more." },
+  { n:"Hands", rule:"Skin on skin, hands and mouths. No penetration." },
+  { n:"Mouth", rule:"Mouths. Nobody penetrates yet." },
+  { n:"Inside",rule:"Penetration. Condoms are out; say so if you need one." },
+  { n:"Open",  rule:"No clock, no rules you did not agree to." }
+];
+var SLOTS = ["outer","top","bottom","under","feet"];
+var GEAR = {
+  outer:  ["None","Jacket","Cardigan","Shirt over top","Dress"],
+  top:    ["None","T-shirt","Blouse","Vest","Jumper"],
+  bottom: ["None","Jeans","Skirt","Shorts","Trousers"],
+  under:  ["None","Boxers","Knickers","Bra","Briefs"],
+  feet:   ["Bare feet","Socks","Tights","Shoes"]
+};
+var DEFAULTS = {
+  M:{outer:"None",top:"T-shirt",bottom:"Jeans",under:"Boxers",feet:"Socks"},
+  F:{outer:"None",top:"Blouse",bottom:"Skirt",under:"Knickers",feet:"Socks"}
+};
+var TRAITS = ["Slow","Fast","Exhibitionist"];
+
+var PLANS = {
+  1:["solo","solo","solo","solo","solo","solo","solo","solo"],
+  2:["solo","two","all","two","two","solo","two","two"],
+  3:["two","solo","two","all","two","all","two","all"],
+  4:["solo","two","all","two","solo","two","all","two"],
+  5:["two","all","solo","two","all","two","solo","two"],
+  6:["two","two","all","solo","two","all","two","two"],
+  7:["all","all","all","all","all","all"]
+};
+var SHORT3 = ["two","solo","two","all","two","all"];
+var LONG3TAIL = ["two","two"];
+var LONG6TAIL = ["two","all","two","two"];
+var SETUPS = { 6:["s6chk","s6con"] };
+
+function B(id,stage,pick,tier,dur,text,depth){
+  return { id:id, stage:stage, pick:pick, tier:tier, dur:dur, text:text, depth:depth||null };
+}
+
+var BEATS = [
+  B("s1a",1,"solo",1,90,"Say your name, then name every part of your own body you would let a stranger's mouth touch tonight. One at a time, nothing skipped."),
+  B("s1b",1,"solo",1,90,"Describe the last time someone's mouth was on your neck. Where exactly, how long, and what it did to you."),
+  B("s1c",1,"solo",1,90,"Name which of the three you would let kiss you right now, and the first place on your body, and why."),
+  B("s1d",1,"solo",2,90,"Say how you like your {A.chest} handled — pressure, speed, teeth or not. Nothing vague."),
+  B("s1e",1,"solo",2,90,"Say what you want done to your {A.crotch} tonight. Three steps, in order, no hedging."),
+  B("s1f",1,"solo",2,90,"Name one thing nobody has ever done to your body that you would allow in this room before the night is out."),
+  B("s1g",1,"solo",2,90,"Describe how you touch yourself when nobody is watching: which hand, where it starts, how fast, how long."),
+  B("s1h",1,"solo",3,90,"Name the part of yourself you are proudest of and the part you would keep covered. Then stand and show the proud one."),
+  B("s1i",1,"solo",3,90,"Tell the room what makes you come, mechanically. Speed, angle, what has to be said or left unsaid."),
+  B("s1j",1,"solo",3,90,"Look at each of the three in turn and say one thing you would do to them tonight, and where. Then pick who goes first."),
+
+  B("s2a",2,"solo",1,90,"{A} sits back. {A} names the place on {A.poss} own body {A} most wants touched, then puts {A.poss} hand there and leaves it for a full minute."),
+  B("s2b",2,"two",1,120,"{B} takes {A.poss} hand and lays it flat on {B.poss} {B.chest}. {A} keeps it there for two minutes and does not move it anywhere else."),
+  B("s2c",2,"all",2,120,"{A} is blindfolded — {A.blind}. The three take turns putting one hand on {A.poss} {A.chest}, {A.poss} stomach, {A.poss} thigh, and {A} names which of the three it is."),
+  B("s2d",2,"two",2,150,"{A} sits between {B.poss} knees, back against {B.poss} chest. {B} works {A.poss} neck and shoulders with both hands for three minutes."),
+  B("s2e",2,"solo",2,120,"{A} stands and turns once, slowly, so the room can look at all of {A} still dressed, while {A} says out loud what {A} would take off first and why."),
+  B("s2f",2,"two",2,150,"{A} and {B} face each other, knees touching. {B} takes {A.poss} face in both hands and holds it while {A} describes {B.poss} mouth out loud for a minute before either may kiss."),
+  B("s2g",2,"two",3,150,"{B} runs both hands from {A.poss} ankles to {A.poss} hips, over {A.poss} {A.bottom}, slower each pass. Four passes."),
+  B("s2h",2,"all",3,180,"Three hands on {A} at once, over the clothes: {A.poss} {A.chest}, {A.poss} inner thigh, {A.poss} {A.crotch}. {A} may not touch back."),
+  B("s2i",2,"solo",3,120,"{A} sits with {A.poss} legs open and says exactly where on {A.poss} body {A} would put someone's mouth first, and why there."),
+  B("s2j",2,"two",4,180,"Blindfold {A} — {A.blind}. {B} touches {A} above the waist only, and {A} has to name each place touched and whether {A} wants more."),
+  B("s2k",2,"two",4,180,"{A} stands. The three take turns tracing {A.poss} outline with one fingertip, a minute each, and nobody speaks."),
+  B("s2l",2,"two",4,180,"{POS3}. {B} holds {A.poss} wrists together in front of {A.poss} face with one hand and works {A.poss} {A.chest} over the cloth with the other. Three minutes."),
+
+  B("s3a",3,"solo",2,120,"{A} stands and takes off one thing — whichever {A} chooses — and holds it out to the room. Nobody moves for a minute."),
+  B("s3b",3,"two",1,150,"{A} takes one thing off {B} and folds it. {B} keeps {B.poss} hands at {B.poss} sides. Two minutes, then {B} takes one off {A}."),
+  B("s3c",3,"two",2,150,"{A} and {B} strip each other at the same time, watching each other's faces, not hands. Two minutes."),
+  B("s3d",3,"all",1,150,"Everyone takes off one thing at once, on a count of three. Nobody helps, nobody rushes, nobody looks away.","one"),
+  B("s3f",3,"two",3,180,"{A} sits down in whatever is left. {B} holds {A.poss} hands above {A.poss} head, looks {A} over, and says what {B} likes."),
+  B("s3g",3,"all",3,210,"Everyone down to whatever they have left underneath, at once, and nobody helps anybody. Then the three walk one slow lap round {A}, and each names one thing they want to touch.","under"),
+  B("s3h",3,"two",3,180,"{B} takes {A.remove1} off {A} with {B.poss} teeth, then keeps {B.poss} mouth on {A.poss} {A.chest} for a minute."),
+  B("s3i",3,"two",4,180,"{A} and {B} in whatever is left underneath. {B} presses {B.poss} {B.chest} against {A.poss} back and holds {A} there. Three minutes."),
+  B("s3j",3,"solo",4,150,"{A} takes off {A.any} alone, then sits and tells the room the truth about how it feels to be looked at."),
+  B("s3l",3,"all",6,180,"Everyone strips to nothing, all at once. Then stand still for thirty seconds and let the room look.","all"),
+
+  B("s4a",4,"solo",1,180,"{A} in the chair, one hand on {A.poss} {A.crotch}, everyone watching. Two minutes, eyes open."),
+  B("s4b",4,"two",1,180,"{B} sits behind {A} and works {A.poss} neck and {A.poss} {A.chest} with mouth and teeth, no hands."),
+  B("s4c",4,"all",1,180,"Three mouths on {A} at once: neck, {A.poss} {A.chest}, inner thigh. Two minutes, and somebody keeps {A.poss} hands pinned."),
+  B("s4d",4,"two",2,180,"{A} lies down. Mouth only, no hands: {B} works {A.poss} shoulders, {A.poss} {A.chest}, {A.poss} {A.nips}, stopping at the hip line."),
+  B("s4e",4,"solo",2,180,"{A} lies back and fingers {A.self} for three minutes — {A.poss} {A.chest} first, then {A.poss} {A.crotch}."),
+  B("s4f",4,"all",2,180,"{A} on all fours. Hands only, rotating every thirty seconds: {A.poss} back, {A.poss} {A.ass}, {A.poss} {A.crotch} from behind."),
+  B("s4g",4,"two",3,180,"{B} uses {B.poss} mouth on {A.poss} {A.chest}, then {A.poss} {A.crotch}. {A} may not use {A.poss} hands."),
+  B("s4h",4,"two",3,180,"{A} and {B} lie head to tail, both touching themselves. Neither may touch the other."),
+  B("s4i",4,"all",3,180,"{A} blindfolded — {A.blind}. Anything above the waist is fair, and one of the three has to be between {A.poss} legs by the timer."),
+  B("s4j",4,"solo",4,300,"{A} brings {A.self} to the edge and stops. Twice. Then four more minutes without stopping."),
+  B("s4k",4,"all",4,180,"Three minutes, three instructions at once, one from each of the three. {A} holds all of them."),
+  B("s4l",4,"two",4,180,"{A} in the chair. {B} kneels beside and talks {A} through it — nothing but instructions, and {B} may not touch."),
+  B("s4m",4,"two",5,240,"{POS1}. Hands and mouths, no penetration. Four minutes."),
+  B("s4n",4,"all",5,240,"Four minutes. {A} picks one of the three to finish {A}; the other two keep their hands on {A.poss} body."),
+  B("s4o",4,"all",6,300,"{A} gets five minutes and no rules. The three do as they like, hands and mouths, anywhere."),
+
+  B("s5a",5,"two",1,240,"{B} kneels and works {A.poss} thighs and {A.poss} {A.crotch} with {B.poss} mouth, hands under {A.poss} {A.ass}. {A} watches."),
+  B("s5b",5,"solo",1,240,"{A} in the chair, working {A.self}, while the room tells {A} when to slow down and when to stop."),
+  B("s5c",5,"all",1,240,"Three mouths, no hands. {A} is passed between them every thirty seconds: neck, {A.poss} {A.chest}, {A.poss} stomach."),
+  B("s5d",5,"two",2,240,"Oral. {B} goes down on {A} for four minutes. {A} keeps both hands in {B.poss} hair."),
+  B("s5e",5,"all",2,240,"{A} on {A.poss} back, legs open, three mouths. Four minutes, and {A} must keep talking."),
+  B("s5f",5,"solo",2,240,"{A} lies back, legs open, and fingers {A.self} to a count out loud, never faster than the count."),
+  B("s5g",5,"two",3,240,"Oral, reversed. {A} goes down on {B}. {B} stays standing, hands on {A.poss} head."),
+  B("s5h",5,"all",3,240,"Two mouths on {A} at once, one on {A.poss} {A.chest} and one between {A.poss} legs, while the third holds {A.poss} hips down."),
+  B("s5i",5,"two",3,240,"{A} and {B}. {B} goes down on {A} and stops every time {A} gets close. {A} must ask out loud."),
+  B("s5j",5,"all",4,240,"Four minutes. Nobody lets {A} finish. All three take turns on {A.poss} {A.crotch} and hold {A} at the edge."),
+  B("s5k",5,"two",4,240,"Sixty-nine, {A} on top. Both work at once for four minutes and neither may stop."),
+  B("s5l",5,"solo",4,240,"{A} blindfolded — {A.blind} — working {A.self}, while the room decides when {A} may speed up."),
+  B("s5m",5,"all",5,300,"{A} chooses one of the three to finish {A} with {A.poss} mouth. The other two hold {A} and kiss {A.poss} neck."),
+  B("s5n",5,"two",5,240,"{POS2}. {B} works {A} with fingers and mouth from behind. Four minutes, no penetration."),
+  B("s5o",5,"all",6,300,"Five minutes. The three take turns, and {A} must ask for each one by name before it starts."),
+
+  B("s6chk",6,"setup",0,120,"Check in. Everyone says where they are: still in, needs a minute, or out. Nobody is argued with."),
+  B("s6con",6,"setup",0,120,"Condoms and lube out where everyone can reach them. Whoever needs one says so now, and {A} hands them round."),
+  B("s6a",6,"two",1,300,"{POS1}. {B} enters {A} — fingers, or a strap-on — and holds still for thirty seconds before moving. Four minutes."),
+  B("s6b",6,"all",1,300,"{A} takes one of the three inside {A} while the other two watch and talk {A} through it. Five minutes."),
+  B("s6c",6,"two",2,300,"{POS2}. {B} enters {A} from behind, slowly, and stays slow. Four minutes."),
+  B("s6d",6,"solo",2,300,"{A} on {A.poss} back with two fingers inside {A.self}, telling the room exactly what it feels like."),
+  B("s6e",6,"two",2,300,"{POS1}. Four minutes, and {A} sets the pace with {A.poss} hips. {B} does not move unless {A} does."),
+  B("s6f",6,"all",2,300,"{A} in the middle. One of the three inside {A}, another at {A.poss} {A.chest}, the third holding {A.poss} face and kissing {A}."),
+  B("s6g",6,"two",3,300,"{POS2}. {B} takes {A} hard and steady. Five minutes, {A.poss} {A.chest} pulled back against {B.poss} {B.chest}."),
+  B("s6h",6,"two",3,300,"{A} and {B}, both standing. {B} lifts one of {A.poss} legs and holds it and moves. Five minutes."),
+  B("s6i",6,"all",3,300,"Three minutes each. {A} is passed round the three, taking each in turn, no pause between."),
+  B("s6j",6,"two",4,300,"{POS1}. Five minutes, no talking. Mouths stay together the whole time."),
+  B("s6k",6,"two",4,300,"{POS2}. {B} reaches round and works {A.poss} {A.crotch} while {B} moves inside {A}. Five minutes."),
+  B("s6l",6,"all",4,300,"{A} on top of one of the three and riding, while the other two use {A.poss} mouth and hands. Five minutes."),
+  B("s6m",6,"two",5,360,"{POS1}. {B} stops every time {A} gets close and does not start again until {A} asks. Six minutes."),
+  B("s6n",6,"two",5,360,"{A} braced against the chair, {B} takes {A} from behind, standing. Six minutes."),
+  B("s6o",6,"two",6,360,"{A} and {B}. Six minutes, and {A} has to say out loud everything {B} does to {A.poss} {A.crotch}, present tense."),
+  B("s6p",6,"two",6,360,"{POS1}. Six minutes. {A} on top and in charge of everything: pace, depth, when {B} may move."),
+  B("s6q",6,"two",6,420,"Both finish, no clock. Whoever is closest goes first, then the other. Nobody leaves the position."),
+
+  B("s7a",7,"all",1,300,"No coach, no clock. Everyone stays where they are. Whoever is closest, finish. Then keep going."),
+  B("s7b",7,"all",1,300,"Pair off as you like. Five minutes, then change."),
+  B("s7c",7,"all",2,300,"One person lies down, the other three get a minute each, in order, hands and mouths anywhere. {A} goes first."),
+  B("s7d",7,"all",2,240,"One song, no instructions. Nobody sits down and nobody stops touching someone."),
+  B("s7e",7,"all",3,180,"Two minutes, mouths only. Nobody uses hands."),
+  B("s7f",7,"all",3,240,"Pick the person you have touched least tonight and give them four minutes of hands and mouth."),
+  B("s7g",7,"all",4,600,"Free-for-all. Ten minutes. One rule: nobody finishes alone."),
+  B("s7h",7,"all",4,600,"All four, one bed or floor, ten minutes, no rules."),
+  B("s7i",7,"all",5,300,"Change partners on every song change. Whoever is nearest when the music stops, hands on them."),
+  B("s7j",7,"all",6,420,"Three minutes, and nobody finishes unless someone else is touching them.")
+];
+
+var NO_CLOCK = { s6q:1, s7a:1 };
+
+var state = null;
+var ticker = null;
+
+/* --- haptics: no-ops in Safari, live under Capacitor --- */
+function plugins(){ return (window.Capacitor && window.Capacitor.Plugins) || {}; }
+function hz(style){
+  var p = plugins();
+  if(p.Haptics){ try{ p.Haptics.impact({ style: style || "light" }); }catch(e){} }
+}
+function buzz(type){
+  var p = plugins();
+  if(p.Haptics){ try{ p.Haptics.notification({ type: type || "success" }); }catch(e){} }
+}
+
+function fresh(){
+  var names = ["Russell","Michelle","Male 1","Female 1"];
+  var sexes = ["M","F","M","F"];
+  return {
+    v:BV, setup:true, done:false,
+    players:names.map(function(n,i){
+      return { name:n, sex:sexes[i], traits:[], gear:Object.assign({},DEFAULTS[sexes[i]]), wear:[] };
+    }),
+    removed:[0,0,0,0],
+    length:"normal",
+    stage:1, plan:[], planPos:0, bag:[], setups:[], used:{},
+    queue:[], outs:[0,0,0,0],
+    cur:null, revealed:false, coach:"", timeLeft:0, running:false,
+    confirm:false, tox:false
+  };
+}
+
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(!raw) return null;
+    var s = JSON.parse(raw);
+    if(!s || s.v !== BV) return null;
+    s.running = false;
+    s.confirm = false;
+    if(!s.removed) s.removed = [0,0,0,0];
+    return s;
+  }catch(e){ return null; }
+}
+
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function P(i){ return state.players[i]; }
+function partnerOf(i){ return i===0?1:(i===1?0:(i===2?3:2)); }
+function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+function buildWear(gear){
+  var out=[];
+  ["outer","feet","top","bottom","under"].forEach(function(slot){
+    var g = gear[slot];
+    if(!g || g==="None" || g==="Bare feet") return;
+    out.push({slot:slot, name:g});
+  });
+  return out;
+}
+
+function syncWear(i){ P(i).wear = buildWear(P(i).gear).slice(state.removed[i] || 0); }
+function syncAll(){ for(var i=0;i<4;i++) syncWear(i); }
+
+function slotName(i,slot){
+  var w=P(i).wear;
+  for(var k=0;k<w.length;k++) if(w[k].slot===slot) return w[k].name;
+  return null;
+}
+function topTok(i){ return slotName(i,"top") || slotName(i,"outer") || "bare skin"; }
+function bottomTok(i){ return slotName(i,"bottom") || "bare legs"; }
+function underTok(i){ return slotName(i,"under") || "nothing underneath"; }
+function anyTok(i){ var w=P(i).wear; return w.length ? w[0].name : "bare skin"; }
+function removePhrase(i){ var w=P(i).wear; return w.length ? w[0].name : "the nearest thing to hand"; }
+function blindTok(i){ return "a tie or a scarf, or " + (P(i).sex==="M"?"his":"her") + " own hand"; }
+
+function stripFor(i,beat){
+  var w = P(i).wear;
+  if(!w.length || state.stage <= 1) return 0;
+  var n = 0, s = state.stage;
+  if(s === 2){ n = beat.pick === "all" ? 1 : 0; }
+  else if(s === 3){
+    if(beat.pick === "all"){
+      if(beat.depth === "all") n = w.length;
+      else if(beat.depth === "under"){
+        var k = 0;
+        while(k < w.length && w[k].slot !== "under") k++;
+        n = k;
+      } else n = 1;
+    } else n = 1;
+  } else {
+    n = beat.pick === "all" ? w.length : 1;
+  }
+  n = Math.min(n, w.length);
+  if(n){ state.removed[i] = (state.removed[i]||0) + n; syncWear(i); }
+  return n;
+}
+
+function posLine(A,B,which){
+  var a=P(A).sex;
+  var an="<b>"+esc(P(A).name)+"</b>", bn="<b>"+esc(P(B).name)+"</b>";
+  var ap="<b>"+esc(P(A).name)+"</b>'s", bp="<b>"+esc(P(B).name)+"</b>'s";
+  if(which===3) return bn+" behind "+an+", "+ap+" back against "+bp+" chest";
+  if(which===1){
+    if(a==="F" && P(B).sex==="M") return an+" on her back, "+bn+" between her legs";
+    if(a==="F") return an+" on her back, "+bn+" above her";
+    return an+" on his back, "+bn+" above him";
+  }
+  if(a==="F") return bn+" behind "+an+", "+an+" on her front";
+  return bn+" behind "+an+", "+an+" on his front";
+}
+
+function fill(text,A,Bc){
+  var out = text;
+  function sub(token,val){ out = out.split(token).join(val); }
+  if(A != null){
+    var a = P(A), ap = a.sex==="M"?"his":"her", ao = a.sex==="M"?"him":"her";
+    sub("{A.poss}", ap);
+    sub("{A.obj}", ao);
+    sub("{A.pron}", a.sex==="M"?"he":"she");
+    sub("{A.self}", a.sex==="M"?"himself":"herself");
+    sub("{A.chest}", a.sex==="M"?"chest":"breasts");
+    sub("{A.crotch}", a.sex==="M"?"cock":"pussy");
+    sub("{A.ass}", "ass");
+    sub("{A.nips}", "nipples");
+    sub("{A.top}", topTok(A));
+    sub("{A.bottom}", bottomTok(A));
+    sub("{A.under}", underTok(A));
+    sub("{A.any}", anyTok(A));
+    sub("{A.remove1}", removePhrase(A));
+    sub("{A.blind}", blindTok(A));
+    sub("{A}", "<b>"+esc(a.name)+"</b>");
+  }
+  if(Bc != null){
+    var b = P(Bc), bp = b.sex==="M"?"his":"her";
+    sub("{B.poss}", bp);
+    sub("{B.chest}", b.sex==="M"?"chest":"breasts");
+    sub("{B}", "<b>"+esc(b.name)+"</b>");
+  }
+  if(A != null && Bc != null){
+    sub("{POS1}", posLine(A,Bc,1));
+    sub("{POS2}", posLine(A,Bc,2));
+    sub("{POS3}", posLine(A,Bc,3));
+  }
+  return out;
+}
+
+function activePlan(){
+  var base = PLANS[state.stage] || [];
+  if(!base.length) return [];
+  if(state.length === "short"){
+    if(state.stage === 3) return SHORT3.slice();
+    if(state.stage === 7) return base.slice(0,4);
+    return base.slice(0,6);
+  }
+  if(state.length === "long"){
+    if(state.stage === 3) return base.concat(LONG3TAIL);
+    if(state.stage === 6) return base.concat(LONG6TAIL);
+    return base.concat(base.slice(0,4));
+  }
+  return base.slice();
+}
+
+function avail(){
+  var a = [0,1,2,3].filter(function(i){ return (state.outs[i]||0) < 2; });
+  return a.length ? a : [0,1,2,3];
+}
+function queueTake(avoid){
+  function blocked(i){ return (state.outs[i]||0) >= 2 || i === avoid; }
+  while(state.queue.length && blocked(state.queue[0])) state.queue.shift();
+  if(!state.queue.length){
+    var pool = avail().filter(function(i){ return i !== avoid; });
+    if(!pool.length) pool = [0,1,2,3].filter(function(i){ return i !== avoid; });
+    state.queue = shuffle(pool);
+  }
+  return state.queue.shift();
+}
+function chooseB(A,avoid){
+  var pool = avail().filter(function(i){ return i !== A && i !== avoid; });
+  if(!pool.length) pool = [0,1,2,3].filter(function(i){ return i !== A && i !== avoid; });
+  if(!pool.length) pool = [0,1,2,3].filter(function(i){ return i !== A; });
+  var partner = partnerOf(A);
+  var cross = pool.filter(function(i){ return i !== partner; });
+  if(cross.length) pool = cross;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function pickCoach(A){
+  var pool = avail().filter(function(i){ return i !== A; });
+  if(!pool.length) pool = [0,1,2,3].filter(function(i){ return i !== A; });
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function slotTarget(){
+  var pick = state.plan[state.planPos];
+  var n = state.plan.length;
+  if(pick === "all"){
+    var idx = 0, cnt = 0;
+    for(var k=0;k<n;k++){
+      if(state.plan[k] === "all"){ if(k < state.planPos) idx++; cnt++; }
+    }
+    if(cnt > 1) return 1 + (idx/(cnt-1))*5;
+  }
+  return n > 1 ? 1 + (state.planPos/(n-1))*5 : 3;
+}
+
+function drawBeat(){
+  if(state.planPos >= state.plan.length) return null;
+  var pick = state.plan[state.planPos];
+  var target = slotTarget();
+  var pool = state.bag.filter(function(b){ return b.pick===pick && !state.used[b.id]; });
+  if(!pool.length) pool = state.bag.filter(function(b){ return !state.used[b.id]; });
+  if(!pool.length){ state.used = {}; pool = state.bag.filter(function(b){ return b.pick===pick; }); }
+  if(!pool.length) pool = state.bag.slice();
+  if(!pool.length) return null;
+  var best = Math.min.apply(null, pool.map(function(b){ return Math.abs(b.tier-target); }));
+  var near = pool.filter(function(b){ return Math.abs(b.tier-target) === best; });
+  return near[Math.floor(Math.random()*near.length)];
+}
+
+function drawNext(){
+  state.revealed = false;
+  state.running = false;
+  var beat = null;
+  if(state.setups.length){
+    var id = state.setups.shift();
+    beat = BEATS.filter(function(b){ return b.id===id; })[0] || null;
+  } else {
+    beat = drawBeat();
+  }
+  if(!beat){
+    state.cur = null;
+    if(state.stage >= 7){ state.done = true; stopTimer(); return; }
+    startStage(state.stage + 1);
+    return;
+  }
+  state.used[beat.id] = true;
+  var A = queueTake(null);
+  var Bc = (beat.pick === "two") ? chooseB(A,null) : null;
+  state.cur = { beat:beat, A:A, B:Bc, deltas:[] };
+  state.coach = (beat.pick === "solo" && state.stage < 6) ? pickCoach(A) : "";
+  state.timeLeft = beat.dur;
+}
+
+function startStage(n){
+  state.stage = n;
+  state.plan = activePlan();
+  state.planPos = 0;
+  state.used = {};
+  state.outs = [0,0,0,0];
+  state.setups = (SETUPS[n] || []).slice();
+  state.bag = shuffle(BEATS.filter(function(b){ return b.stage===n && b.pick!=="setup"; }));
+  state.queue = [];
+  state.coach = "";
+  drawNext();
+  save();
+}
+
+function reveal(){
+  if(!state.cur || state.revealed) return;
+  state.revealed = true;
+  hz("medium");
+  var beat = state.cur.beat;
+  var deltas = [];
+  function take(i){
+    var n = stripFor(i,beat);
+    if(n) deltas.push([i,n]);
+  }
+  if(beat.pick === "all"){ for(var i=0;i<4;i++) take(i); }
+  else { take(state.cur.A); if(state.cur.B != null) take(state.cur.B); }
+  state.cur.deltas = deltas;
+  if(!NO_CLOCK[beat.id]) startTimer();
+  save();
+}
+
+function advance(){
+  if(state.cur && state.cur.beat.pick !== "setup") state.planPos++;
+  if(state.planPos >= state.plan.length){
+    if(state.stage >= 7){ state.done = true; state.cur = null; stopTimer(); save(); render(); return; }
+    startStage(state.stage + 1);
+  } else {
+    drawNext();
+  }
+  save(); render();
+}
+
+function next(){ if(state.cur && state.revealed){ hz("light"); advance(); } }
+
+function undoDeltas(){
+  if(!state.cur || !state.cur.deltas) return;
+  state.cur.deltas.forEach(function(d){
+    state.removed[d[0]] = Math.max(0, (state.removed[d[0]]||0) - d[1]);
+    syncWear(d[0]);
+  });
+  state.cur.deltas = [];
+}
+
+function redraw(avoid){
+  if(!state.cur) return;
+  stopTimer();
+  undoDeltas();
+  state.revealed = false;
+  var av = (avoid == null) ? null : avoid;
+  if(av != null) state.queue = state.queue.filter(function(x){ return x !== av; });
+  state.cur.A = queueTake(av);
+  state.cur.B = (state.cur.beat.pick === "two") ? chooseB(state.cur.A, av) : null;
+  state.coach = (state.cur.beat.pick === "solo" && state.stage < 6) ? pickCoach(state.cur.A) : "";
+  state.timeLeft = state.cur.beat.dur;
+  save(); render();
+}
+
+function skipBeat(){ if(state.cur){ stopTimer(); undoDeltas(); advance(); } }
+
+function outPlayer(i){
+  if(!state.cur) return;
+  hz("light");
+  state.outs[i] = (state.outs[i]||0)+1;
+  redraw(i);
+}
+
+function restartGame(){
+  var players = state.players;
+  var length = state.length;
+  state = fresh();
+  state.players = players.map(function(p){
+    return { name:p.name, sex:p.sex, traits:p.traits.slice(), gear:Object.assign({},p.gear), wear:[] };
+  });
+  state.length = length;
+  state.setup = false;
+  state.removed = [0,0,0,0];
+  syncAll();
+  startStage(1);
+  render();
+  window.scrollTo(0,0);
+}
+
+function begin(){
+  state.setup = false;
+  state.done = false;
+  state.outs = [0,0,0,0];
+  state.removed = [0,0,0,0];
+  syncAll();
+  startStage(1);
+  render();
+  window.scrollTo(0,0);
+}
+
+function openSetup(){
+  stopTimer();
+  state.setup = true;
+  render();
+  window.scrollTo(0,0);
+}
+
+function startTimer(){ stopTimer(); state.running = true; ticker = setInterval(tick,1000); }
+function stopTimer(){ if(ticker){ clearInterval(ticker); ticker = null; } state.running = false; }
+
+function fmt(t){ return Math.floor(t/60) + ":" + ("0"+(t%60)).slice(-2); }
+
+function tick(){
+  if(!state.running) return;
+  state.timeLeft--;
+  if(state.timeLeft <= 0){
+    state.timeLeft = 0;
+    stopTimer();
+    buzz("warning");
+    render();
+    return;
+  }
+  if(state.timeLeft <= 10 && state.timeLeft % 1 === 0 && state.timeLeft <= 3) hz("light");
+  var el = document.getElementById("clock");
+  if(el){
+    el.textContent = fmt(state.timeLeft);
+    if(state.timeLeft <= 10) el.className = "clock low";
+  }
+}
+
+function render(){
+  var app = document.getElementById("app");
+  if(state.setup){ app.innerHTML = setupHTML(); bindSetup(); return; }
+  if(state.done){ app.innerHTML = endHTML(); bindGame(); return; }
+  app.innerHTML = gameHTML();
+  bindGame();
+}
+
+function overlayHTML(){
+  return '<div class="overlay" id="ovl"><div class="dialog"><h3>Restart the night?</h3>' +
+    '<p>Back to the Door, everyone dressed, outs cleared. Names and clothing stay.</p>' +
+    '<div class="ctr"><button class="primary" id="yes">Yes, restart</button><button id="no">Cancel</button></div></div></div>';
+}
+
+function setupHTML(){
+  var cards = state.players.map(function(p,i){
+    return '<div class="pcard">' +
+      '<div class="phead">' +
+        '<input data-name="'+i+'" value="'+esc(p.name)+'" maxlength="14">' +
+        '<select data-sex="'+i+'">' +
+          '<option value="M"'+(p.sex==="M"?" selected":"")+'>M</option>' +
+          '<option value="F"'+(p.sex==="F"?" selected":"")+'>F</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="grid5">' +
+        SLOTS.map(function(slot){
+          return '<div><label>'+slot+'</label><select data-gear="'+i+'" data-slot="'+slot+'">' +
+            GEAR[slot].map(function(o){ return '<option'+(p.gear[slot]===o?" selected":"")+'>'+o+'</option>'; }).join('') +
+          '</select></div>';
+        }).join('') +
+      '</div>' +
+      '<div class="traits">' + TRAITS.map(function(t){
+        return '<span class="tchip'+(p.traits.indexOf(t)>-1?" on":"")+'" data-trait="'+i+'" data-t="'+t+'">'+t+'</span>';
+      }).join('') + '</div>' +
+    '</div>';
+  }).join("");
+
+  var lens = ["short","normal","long"].map(function(l){
+    return '<button data-len="'+l+'" class="'+(state.length===l?"on":"")+'">'+l+'</button>';
+  }).join("");
+
+  return '<h1>Threshold</h1>' +
+    '<p class="lede">Seven stages, two couples, one ladder. Door, Seated, Skin, Hands, Mouth, Inside, Open.</p>' +
+    '<h2>The players</h2>' + cards +
+    '<h2>How long</h2><div class="seg">' + lens + '</div>' +
+    '<button class="primary" id="begin">Begin</button>' +
+    '<p class="note">Begin starts the night at the Door. Changing anything here resets the ladder.</p>';
+}
+
+function bindSetup(){
+  document.querySelectorAll("[data-name]").forEach(function(el){
+    el.oninput = function(){ state.players[+el.dataset.name].name = el.value || "Player"; save(); };
+  });
+  document.querySelectorAll("[data-sex]").forEach(function(el){
+    el.onchange = function(){
+      var i = +el.dataset.sex, p = state.players[i];
+      var nd = DEFAULTS[el.value];
+      p.sex = el.value;
+      SLOTS.forEach(function(s){ if(GEAR[s].indexOf(p.gear[s]) < 0) p.gear[s] = nd[s]; });
+      save(); render();
+    };
+  });
+  document.querySelectorAll("[data-gear]").forEach(function(el){
+    el.onchange = function(){ state.players[+el.dataset.gear].gear[el.dataset.slot] = el.value; save(); };
+  });
+  document.querySelectorAll("[data-trait]").forEach(function(el){
+    el.onclick = function(){
+      var i = +el.dataset.trait, t = el.dataset.t, arr = state.players[i].traits, k = arr.indexOf(t);
+      if(k > -1) arr.splice(k,1); else arr.push(t);
+      save(); render();
+    };
+  });
+  document.querySelectorAll("[data-len]").forEach(function(el){
+    el.onclick = function(){ state.length = el.dataset.len; save(); render(); };
+  });
+  document.getElementById("begin").onclick = begin;
+}
+
+function gameHTML(){
+  var st = STAGES[state.stage];
+  var total = state.plan.length;
+  var shown = Math.min(state.planPos+1, total);
+
+  var chips = state.players.map(function(p,i){
+    var naked = p.wear.length === 0;
+    var sat = (state.outs[i]||0) >= 2;
+    var label = naked ? "naked" : p.wear.map(function(w){ return w.name; }).join(", ");
+    var tr = p.traits.length ? ' <i>'+p.traits.map(function(t){ return esc(t); }).join(" ")+'</i>' : "";
+    return '<span class="chip'+(naked?" naked":"")+(sat?" sat":"")+'"><b>'+esc(p.name)+'</b> '+label+tr+'</span>';
+  }).join("");
+
+  var beat = state.cur && state.cur.beat;
+  var body, pickLabel = "";
+  if(!beat){
+    body = '<div class="hidden">Dealing…</div>';
+  } else if(state.revealed){
+    body = '<div class="txt">' + fill(beat.text, state.cur.A, state.cur.B) + '</div>';
+  } else {
+    pickLabel = beat.pick === "all" ? "the room" : (beat.pick === "two" ? "a pair" : (beat.pick === "setup" ? "setup" : "one"));
+    body = '<div class="hidden">' + (beat.pick==="all" ? "All four." : beat.pick==="two" ? "Two of you." : beat.pick==="setup" ? "Before you start." : "One of you.") + ' Tap reveal.</div>';
+  }
+
+  var outs = state.players.map(function(p,i){
+    var inBeat = !!beat && beat.pick !== "setup" && (beat.pick==="all" || (state.cur && (state.cur.A===i || state.cur.B===i)));
+    var allowed = inBeat && beat && beat.pick !== "all" && (state.outs[i]||0) < 2;
+    return '<button class="out" data-out="'+i+'"'+(allowed?"":" disabled")+'>' +
+      '<span class="n">'+esc(p.name)+'</span>out '+(state.outs[i]||0)+'</button>';
+  }).join("");
+
+  var noclk = !!beat && !!NO_CLOCK[beat.id];
+  var clock = noclk
+    ? '<span class="clock off" id="clock">no clock</span>'
+    : '<span class="clock'+(state.timeLeft<=10?" low":"")+'" id="clock">'+fmt(state.timeLeft)+'</span>';
+
+  var hasCoach = state.coach !== "" && state.coach !== null && state.coach !== undefined;
+  var coachName = hasCoach ? P(state.coach).name : "";
+
+  return (state.confirm ? overlayHTML() : "") +
+    '<div class="bar"><div class="barL">' +
+      '<span class="sname">'+st.n+'</span>' +
+      '<span class="prog">Stage '+state.stage+' of 7 · beat '+shown+' of '+total+'</span>' +
+      clock +
+    '</div><div class="barBtns">' +
+      '<button class="ghost small" id="players">Players</button>' +
+      '<button class="small" id="restart">Restart</button>' +
+    '</div></div>' +
+    '<div class="rule">'+st.rule+'</div>' +
+    (hasCoach ? '<div class="coach">Coach: <b>'+esc(coachName)+'</b> watches '+esc(P(state.cur.A).name)+' and calls it.</div>' : '') +
+    '<div class="chips">'+chips+'</div>' +
+    '<div class="card"><div class="pick">'+(pickLabel||"")+'</div>'+body+'</div>' +
+    '<div class="ctr">' +
+      (state.revealed ? '<button class="primary" id="next">Next</button>' : '<button class="primary" id="rev">Reveal</button>') +
+    '</div>' +
+    '<div class="trow">' +
+      (noclk ? '' : '<button id="tstart">'+(state.running?"Pause":"Start")+'</button><button id="treset">Reset</button>') +
+      '<button class="ghost" id="redraw"'+(state.revealed?" disabled":"")+'>Redraw</button>' +
+      '<button class="ghost" id="skip">Skip</button>' +
+      '<button class="ghost" id="tox">Tokens</button>' +
+    '</div>' +
+    (state.tox ? '<div class="tox">' + ["{A.top}","{A.bottom}","{A.under}","{A.any}","{A.remove1}","{A.blind}"].map(function(x){ return '<span>'+x+'</span>'; }).join("") + '</div>' : "") +
+    '<div class="outhint">'+((beat && (beat.pick==="all" || beat.pick==="setup")) ? "No outs on this beat." : "Out sends the beat to someone else. Two outs and that player sits out the stage.")+'</div>' +
+    '<div class="outs">'+outs+'</div>';
+}
+
+function endHTML(){
+  return (state.confirm ? overlayHTML() : "") +
+    '<div class="end"><h2>The night is done</h2>' +
+    '<p class="lede">Seven stages. Everyone bare, everyone spent.</p>' +
+    '<button class="primary" id="again">Start again</button></div>';
+}
+
+function cancelConfirm(){ state.confirm = false; render(); }
+
+function bindGame(){
+  document.onkeydown = function(e){
+    if(state.confirm && (e.key === "Escape" || e.keyCode === 27)) cancelConfirm();
+  };
+  var ovl = document.getElementById("ovl");
+  if(ovl) ovl.onclick = function(e){ if(e.target === ovl) cancelConfirm(); };
+
+  var again = document.getElementById("again");
+  if(again) again.onclick = function(){ openConfirm(); };
+  var r = document.getElementById("restart");
+  if(r) r.onclick = function(){ openConfirm(); };
+  var pl = document.getElementById("players");
+  if(pl) pl.onclick = openSetup;
+  var y = document.getElementById("yes");
+  if(y) y.onclick = function(){ state.confirm = false; restartGame(); };
+  var n = document.getElementById("no");
+  if(n) n.onclick = cancelConfirm;
+
+  var rev = document.getElementById("rev");
+  if(rev) rev.onclick = function(){ reveal(); render(); };
+  var nx = document.getElementById("next");
+  if(nx) nx.onclick = next;
+  var rd = document.getElementById("redraw");
+  if(rd) rd.onclick = function(){ redraw(null); };
+  var sk = document.getElementById("skip");
+  if(sk) sk.onclick = skipBeat;
+
+  var ts = document.getElementById("tstart");
+  if(ts) ts.onclick = function(){ if(state.running) stopTimer(); else startTimer(); render(); };
+  var tr = document.getElementById("treset");
+  if(tr) tr.onclick = function(){ stopTimer(); state.timeLeft = state.cur ? state.cur.beat.dur : 0; render(); };
+  var tx = document.getElementById("tox");
+  if(tx) tx.onclick = function(){ state.tox = !state.tox; render(); };
+
+  document.querySelectorAll("[data-out]").forEach(function(el){
+    el.onclick = function(){ outPlayer(+el.dataset.out); };
+  });
+}
+
+function openConfirm(){
+  stopTimer();
+  state.confirm = true;
+  render();
+  window.scrollTo(0,0);
+}
+
+(function boot(){
+  var loaded = load();
+  state = loaded || fresh();
+  if(!state.players) state = fresh();
+  state.running = false;
+  if(!state.removed) state.removed = [0,0,0,0];
+  syncAll();
+  render();
+  if("serviceWorker" in navigator && location.protocol === "https:"){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
+})();
+</script>
+</body>
+</html>
